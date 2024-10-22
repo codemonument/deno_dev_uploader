@@ -6,6 +6,7 @@
     "dev": "deno run --watch main.ts"
   },
   "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
     "@codemonument/sftp-client": "jsr:@codemonument/sftp-client@^0.3.0",
     "@std/assert": "jsr:@std/assert@1"
   }
