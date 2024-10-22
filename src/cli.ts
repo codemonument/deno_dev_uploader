@@ -20,7 +20,8 @@ export const cli = new Command()
         "-u, --upload-pair <upload-pair>",
         `An upload-pair in the format of <source>:<destination>. 
         Min one upload-pair is required.
-        Note: this option can be set multiple times, but destination must exist on the same host for each upload-pair. 
+        Note: this option can be set multiple times, but destination must be on the same --sftp.host for each upload-pair.
+        CAUTION: The destination folder MUST exist on the server! Upload WILL fail otherwise! 
         `,
         {
             collect: true,
