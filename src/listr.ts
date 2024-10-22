@@ -1,6 +1,6 @@
 import { Manager } from "@listr2/manager";
 import { type ListrBaseClassOptions, ListrLogger } from "npm:listr2";
-import type { SftpClient } from "@codemonument/sftp-client";
+import type { GenericLogger, SftpClient } from "@codemonument/sftp-client";
 
 export type ListrCtx = {
     sftp: Array<SftpClient>;
@@ -23,6 +23,22 @@ export function createListrManager<T = unknown>(
     });
 }
 
-export const logger = new ListrLogger({
+const internalListrLogger = new ListrLogger({
     useIcons: false,
 });
+
+/**
+ * TODO: Fix loosing the extras!
+ */
+export const listrLogger: GenericLogger = {
+    log: (message: string, ...extras) =>
+        internalListrLogger.log("info", message),
+    info: (message: string, ...extras) =>
+        internalListrLogger.log("info", message),
+    warn: (message: string, ...extras) =>
+        internalListrLogger.log("warn", message),
+    error: (message: string, ...extras) =>
+        internalListrLogger.log("error", message),
+    debug: (message: string, ...extras) =>
+        internalListrLogger.log("debug", message),
+};

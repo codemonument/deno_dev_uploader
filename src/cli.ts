@@ -1,8 +1,9 @@
 import { Command } from "@cliffy/command";
-import { existsSync } from "@std/fs";
-import type { UploadPair } from "./types.ts";
-import { createListrManager, type ListrCtx } from "./listr.ts";
 import { SftpClient } from "@codemonument/sftp-client";
+import { existsSync } from "@std/fs";
+import type { Listr } from "listr2";
+import { createListrManager, type ListrCtx, listrLogger } from "./listr.ts";
+import type { UploadPair } from "./types.ts";
 export const cli = new Command()
     .name("dev-uploader")
     .description(
@@ -19,8 +20,8 @@ export const cli = new Command()
     .option(
         "-u, --upload-pair <upload-pair>",
         `An upload-pair in the format of <source>:<destination>. 
-        Min one upload-pair is required.
-        Note: this option can be set multiple times, but destination must be on the same --sftp.host for each upload-pair.
+        Min one upload-pair is required. 
+        CAUTION: This option can be set multiple times, but destination must be on the same --sftp.host for each upload-pair.
         CAUTION: The destination folder MUST exist on the server! Upload WILL fail otherwise! 
         `,
         {
@@ -111,33 +112,51 @@ export const cli = new Command()
         }
 
         // STEP 2 - Create the Listr Task manager and prepare the init tasks
-        const tasks = createListrManager<ListrCtx>();
+        const globalTaskList = createListrManager<ListrCtx>();
 
-        tasks.add([
-            {
-                title: `Create sftp connections`,
-                task: (ctx, task) => {
-                    // SFTP INFO
-                    // - source files are referenced from the cwd of this cli, for example:
-                    // -   dist/apps/myapp/assets/svg-icons/ms_access.svg
-                    task.output =
-                        `Creating ${sftp.connections} SFTP connections...`;
-                    for (let i = 0; i < sftp.connections; i++) {
-                        ctx.sftp[i] = new SftpClient({
-                            host: sftp.host,
-                            cwd: Deno.cwd(),
-                            uploaderName: `SFTP${i + 1}`,
-                            logger: {
-                                ...console,
-                                debug: () => {},
+        // function generateSftpTasks
+
+        // STEP ? - Start the watchers
+        for (const uploadPair of uploadPairs) {
+            globalTaskList.add([
+                {
+                    title: `Watching for changes in ${uploadPair.source}`,
+                    task: (ctx, task): Listr =>
+                        // Generates the watcher task list (per uploadPair)
+                        task.newListr((_parentTask) => [
+                            // Watcher TaskList: Task 1
+                            {
+                                title:
+                                    `Starting watcher for ${uploadPair.source}`,
+                                task: (ctx, task) => {
+                                    task.output = "Watching for changes...";
+                                },
                             },
-                        });
-                        ctx.sftp[i].cd(`www/maya.internett.de`);
-                    }
+                            // Watcher TaskList: Task 2
+                            {
+                                title: `Create sftp connections`,
+                                task: (ctx, task) => {
+                                    // SFTP INFO
+                                    // - source files are referenced from the cwd of this cli, for example:
+                                    // -   dist/apps/myapp/assets/svg-icons/ms_access.svg
+                                    task.output =
+                                        `Creating ${sftp.connections} SFTP connections...`;
+                                    for (let i = 0; i < sftp.connections; i++) {
+                                        ctx.sftp[i] = new SftpClient({
+                                            host: sftp.host,
+                                            cwd: Deno.cwd(),
+                                            uploaderName: `SFTP${i + 1}`,
+                                            logger: listrLogger,
+                                        });
+                                        ctx.sftp[i].cd(`www/maya.internett.de`);
+                                    }
+                                },
+                            },
+                        ]),
                 },
-            },
-        ]);
+            ]);
+        }
 
         // STEP 3 - Run all initial Tasks
-        await tasks.runAll();
+        await globalTaskList.runAll();
     });
