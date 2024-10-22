@@ -5,7 +5,8 @@
 	"tasks": {
 		"dev": "deno run --watch main.ts",
 		"example-help": "deno run main.ts --help",
-		"example-version": "deno run main.ts --version"
+		"example-version": "deno run main.ts --version",
+		"example-v": "deno run main.ts -v"
 	},
 	"imports": {
 		"@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
