@@ -9,7 +9,8 @@
 		"example-version": "deno run main.ts --version",
 		"example-v": "deno run main.ts -v",
 		"example-u": "deno run -R main.ts -u ./playground:./playground -s.h maya-dev -u out2:out2 ",
-		"example-wi": "deno run -R main.ts -u ./playground:./playground -s.h maya-dev -w.i.e .js.map -w.i.e .css.map -w.i.i stats.json"
+		"example-wi": "deno run -R main.ts -u ./playground:./playground -s.h maya-dev -w.i.e .js.map -w.i.e .css.map -w.i.i stats.json",
+		"preview": "deno run -R -E=NO_COLOR,FORCE_COLOR,TERM,CI,LISTR_FORCE_UNICODE main.ts -u ./playground:./playground -s.h maya-dev -w.i.e .js.map -w.i.e .css.map -w.i.e stats.json"
 	},
 	"imports": {
 		"@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
