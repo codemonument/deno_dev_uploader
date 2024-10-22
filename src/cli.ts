@@ -1,5 +1,5 @@
 import { Command } from "@cliffy/command";
-import { exists, existsSync } from "@std/fs";
+import { existsSync } from "@std/fs";
 export const cli = new Command()
     .name("dev-uploader")
     .description(
@@ -22,6 +22,13 @@ export const cli = new Command()
         {
             collect: true,
             required: true,
+        },
+    )
+    .option(
+        "-c, --connection-count <sftpConnectionCount:integer>",
+        "Optional: The number of sftp connections to use",
+        {
+            default: 6,
         },
     )
     .action(({ uploadPair: uploadPairStrings }) => {
