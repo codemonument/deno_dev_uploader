@@ -59,7 +59,7 @@ export function watch(
     {
         watchDir,
         logger = console,
-        debounceBufferMs = 10000,
+        debounceBufferMs = 1000,
         ignore = {
             pathEndsWith: [],
             pathIncludes: [],
