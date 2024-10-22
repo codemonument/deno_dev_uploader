@@ -7,6 +7,10 @@ import { watch } from "../src/watch.ts";
 const watcher1$ = watch({
     watchDir: "/Users/bjesuiter/Develop/tt/frontend-mono/dist/apps/maya",
     watcherName: "watcher_1",
+    ignore: {
+        pathEndsWith: [".css.map", ".js.map"],
+        pathIncludes: ["stats.json"],
+    },
 });
 
 watcher1$.subscribe((filepaths) => {

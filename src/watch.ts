@@ -30,6 +30,24 @@ export type WatcherOptions = {
      * @default 1000 (1 second)
      */
     debounceBufferMs?: number;
+
+    ignore?: {
+        /**
+         * An array of patterns to ignore in the watcher.
+         * The patterns will be checked via `string.endsWith()`.
+         * For example: `['.css.map', '.js.map']` will filter all files ending with '.css.map' or '.js.map'.
+         *
+         * This option is more explicit than `pathIncludes` and should be preferred if possible.
+         */
+        pathEndsWith?: string[];
+
+        /**
+         * An array of patterns to ignore in the watcher.
+         * The patterns will be checked via `string.includes()`.
+         * For example: `['stats.json']` will filter all files containing 'stats.json' in their path.
+         */
+        pathIncludes?: string[];
+    };
 };
 
 /**
@@ -38,7 +56,15 @@ export type WatcherOptions = {
  * after no new changes happened for `1000` milliseconds (can be configured with the `debounceBufferMs` option).
  */
 export function watch(
-    { watchDir, logger = console, debounceBufferMs = 10000 }: WatcherOptions,
+    {
+        watchDir,
+        logger = console,
+        debounceBufferMs = 10000,
+        ignore = {
+            pathEndsWith: [],
+            pathIncludes: [],
+        },
+    }: WatcherOptions,
 ): Observable<string[]> {
     logger.log(`Watching dir "${watchDir}" for creations or changes...`);
 
@@ -78,9 +104,21 @@ export function watch(
     const bufferedWatch$ = rxjsWatch$.pipe(
         // filter unwanted files (e.g. stats.json)
         filter(({ filepath }) => {
-            let keep = !filepath.includes("stats.json");
-            keep = keep && !filepath.endsWith(".js.map");
-            return keep;
+            for (const pattern of ignore.pathIncludes ?? []) {
+                // directly return false for the filter if the pattern is found in the filepath => early return
+                if (filepath.includes(pattern)) {
+                    return false;
+                }
+            }
+
+            for (const pattern of ignore.pathEndsWith ?? []) {
+                // directly return false for the filter if the pattern is found in the filepath => early return
+                if (filepath.endsWith(pattern)) {
+                    return false;
+                }
+            }
+
+            return true;
         }),
         // note: bufferWhen emits empty arrays when debounceTime is reached but no new events happened...
         bufferWhen(() => rxjsWatch$.pipe(debounceTime(debounceBufferMs))),
