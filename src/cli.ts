@@ -26,9 +26,23 @@ export const cli = new Command()
         },
     )
     .option(
-        "-w.i, --watcher.ignore <patterns...:string>",
+        "-w.i.e, --watcher.ignore.path-ends-with <endsWithPattern>",
+        `Optional: Path patterns to ignore in the watcher. Will be checked via string.endsWith().
+         Can be added multiple times.
+         For example: '-w.i.e .js.map -w.i.e stats.js' will filter all file paths ending with '.js.map' or 'stats.js'.`,
+        {
+            collect: true,
+        },
+    )
+    .option(
+        "-w.i.i, --watcher.ignore.path-includes <includesPattern>",
         `Optional: Path patterns to ignore in the watcher. Will be checked via string.includes().
-         For example: '-w.i .js.map stats.js' will filter all files containing '.js.map' or 'stats.js' in their path.`,
+         Can be added multiple times.
+         For example: '-w.i.i .js.map -w.i.i stats.js' will filter all file paths containing '.js.map' or 'stats.js'.
+         Note: prefer --watcher.ignore.path-ends-with if possible.`,
+        {
+            collect: true,
+        },
     )
     .option(
         "-s.h, --sftp.host <host:string>",
@@ -47,9 +61,30 @@ export const cli = new Command()
         },
     )
     .action(({ uploadPair: uploadPairStrings, watcher }) => {
+        // STEP 0: sanitize the ignore patterns
+        // TODO: make issue in cliffy git repo about wrong typing when using "Dottet options" together with "collect: true"
+        // https://github.com/c4spar/deno-cliffy/issues
         if (watcher?.ignore) {
             console.log(`Found ignore patterns: `, watcher?.ignore);
         }
+        let ignorePatterns: {
+            pathEndsWith: string[];
+            pathIncludes: string[];
+        } = {
+            pathEndsWith: [],
+            pathIncludes: [],
+        };
+        if (watcher?.ignore?.pathEndsWith) {
+            const inputAsArray = watcher.ignore
+                .pathEndsWith as unknown as string[];
+            ignorePatterns.pathEndsWith = inputAsArray;
+        }
+        if (watcher?.ignore?.pathIncludes) {
+            const inputAsArray = watcher.ignore
+                .pathIncludes as unknown as string[];
+            ignorePatterns.pathIncludes = inputAsArray;
+        }
+
         // STEP 1: extract and validate upload pairs from the cli options
         const uploadPairs = uploadPairStrings
             .map((uploadPairString) => {
