@@ -1,9 +1,14 @@
 import { Command } from "@cliffy/command";
 import { SftpClient } from "@codemonument/sftp-client";
 import { existsSync } from "@std/fs";
+import { format } from "date-fns";
 import type { Listr } from "listr2";
 import { createListrManager, type ListrCtx, listrLogger } from "./listr.ts";
 import type { UploadPair } from "./types.ts";
+import { watch } from "./watch.ts";
+import { splitToNChunks } from "./utils.ts";
+import { createSftpUploadTask } from "./listr.ts";
+
 export const cli = new Command()
     .name("dev-uploader")
     .description(
@@ -114,25 +119,16 @@ export const cli = new Command()
         // STEP 2 - Create the Listr Task manager and prepare the init tasks
         const globalTaskList = createListrManager<ListrCtx>();
 
-        // function generateSftpTasks
-
-        // STEP ? - Start the watchers
-        for (const uploadPair of uploadPairs) {
+        // STEP 3 - Start the watchers
+        for (let i = 0; i < uploadPairs.length; i++) {
+            const uploadPair = uploadPairs[i];
             globalTaskList.add([
                 {
                     title: `Watching for changes in ${uploadPair.source}`,
                     task: (ctx, task): Listr =>
                         // Generates the watcher task list (per uploadPair)
-                        task.newListr((_parentTask) => [
+                        task.newListr((watcherTask) => [
                             // Watcher TaskList: Task 1
-                            {
-                                title:
-                                    `Starting watcher for ${uploadPair.source}`,
-                                task: (ctx, task) => {
-                                    task.output = "Watching for changes...";
-                                },
-                            },
-                            // Watcher TaskList: Task 2
                             {
                                 title: `Create sftp connections`,
                                 task: (ctx, task) => {
@@ -141,15 +137,66 @@ export const cli = new Command()
                                     // -   dist/apps/myapp/assets/svg-icons/ms_access.svg
                                     task.output =
                                         `Creating ${sftp.connections} SFTP connections...`;
-                                    for (let i = 0; i < sftp.connections; i++) {
-                                        ctx.sftp[i] = new SftpClient({
+                                    for (let j = 0; j < sftp.connections; j++) {
+                                        ctx.sftp[j] = new SftpClient({
                                             host: sftp.host,
                                             cwd: Deno.cwd(),
-                                            uploaderName: `SFTP${i + 1}`,
+                                            uploaderName: `sftp_${j + 1}`,
                                             logger: listrLogger,
                                         });
-                                        ctx.sftp[i].cd(`www/maya.internett.de`);
+                                        ctx.sftp[j].cd(`www/maya.internett.de`);
                                     }
+                                },
+                            },
+                            // Watcher TaskList: Task 2
+                            {
+                                title:
+                                    `Starting watcher for ${uploadPair.source}`,
+                                task: (ctx, task) => {
+                                    const watcher$ = watch({
+                                        watchDir: uploadPair.source,
+                                        watcherName: `watcher_${i + 1}`,
+                                        logger: listrLogger,
+                                        ignore: ignorePatterns,
+                                    });
+
+                                    watcher$.subscribe((allChangedFiles) => {
+                                        const dateString = format(
+                                            new Date(),
+                                            "yyyy-mm-dd HH:mm:ss:SSS",
+                                        );
+                                        listrLogger.info(
+                                            `${dateString} Changed files: ${allChangedFiles.length}`,
+                                        );
+
+                                        // slice files into n buckets
+                                        const fileBuckets = splitToNChunks(
+                                            allChangedFiles,
+                                            sftp.connections,
+                                        );
+
+                                        // returns a new task list inside this "start watcher" task
+                                        return task.newListr((parentTask) => [
+                                            {
+                                                title:
+                                                    `${dateString} Changes detected: Uploading ${allChangedFiles.length} files`,
+                                                task: (ctx, task): Listr =>
+                                                    task.newListr((
+                                                        _parentTask,
+                                                    ) => fileBuckets.map(
+                                                        (bucket, index) => {
+                                                            return createSftpUploadTask(
+                                                                ctx.sftp[index],
+                                                                bucket,
+                                                                `SFTP${
+                                                                    index + 1
+                                                                }`,
+                                                            );
+                                                        },
+                                                    )),
+                                            },
+                                        ]);
+                                    });
                                 },
                             },
                         ]),

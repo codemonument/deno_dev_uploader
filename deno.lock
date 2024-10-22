@@ -9,6 +9,7 @@
     "jsr:@codemonument/puppet-process@1": "1.0.0",
     "jsr:@codemonument/rx-webstreams@~0.9.4": "0.9.4",
     "jsr:@codemonument/sftp-client@0.3": "0.3.0",
+    "jsr:@codemonument/simple-rounding@1": "1.0.0",
     "jsr:@std/assert@0.223": "0.223.0",
     "jsr:@std/assert@1": "1.0.6",
     "jsr:@std/bytes@0.223": "0.223.0",
@@ -89,6 +90,9 @@
         "npm:p-map",
         "npm:rxjs"
       ]
+    },
+    "@codemonument/simple-rounding@1.0.0": {
+      "integrity": "306e17d7b1b1b4b535b6006805ccee6d970060336380dcfca52cd31a1e64b4b5"
     },
     "@std/assert@0.223.0": {
       "integrity": "eb8d6d879d76e1cc431205bd346ed4d88dc051c6366365b1af47034b0670be24"
@@ -309,6 +313,7 @@
       "jsr:@codemonument/cliffy-zod-option@^1.0.1",
       "jsr:@codemonument/rx-webstreams@~0.9.4",
       "jsr:@codemonument/sftp-client@0.3",
+      "jsr:@codemonument/simple-rounding@1",
       "jsr:@std/assert@1",
       "jsr:@std/fs@^1.0.4",
       "npm:@listr2/manager@^2.0.13",

@@ -38,31 +38,37 @@ export function createListrManager<T = unknown>(
  * @param uploaderName
  * @returns
  */
-function createSftpUploadTask(
+export function createSftpUploadTask(
     sftp: SftpClient,
     files: string[],
     uploaderName: string,
 ) {
-    return (
-        _ctx: ListrCtx,
-        task: ListrTaskWrapper<
-            any,
-            typeof DefaultRenderer,
-            typeof SimpleRenderer
-        >,
-    ) => {
-        const start = performance.now();
-        const fileList = files;
-        return sftp.uploadFiles$(fileList).pipe(
-            map(({ file, nr }) => `Uploading file ${nr}: ${file}`),
-            finalize(() => {
-                const end = performance.now();
-                const durationInSek = roundToPrecision((end - start) / 1000, 2);
-                const text =
-                    `${uploaderName}: Uploaded ${fileList.length} files in ${durationInSek} seconds!`;
-                task.title = text;
-            }),
-        );
+    return {
+        title: `${uploaderName}: Uploading ${files.length} files`,
+        task: (
+            _ctx: ListrCtx,
+            task: ListrTaskWrapper<
+                any,
+                typeof DefaultRenderer,
+                typeof SimpleRenderer
+            >,
+        ) => {
+            const start = performance.now();
+            const fileList = files;
+            return sftp.uploadFiles$(fileList).pipe(
+                map(({ file, nr }) => `Uploading file ${nr}: ${file}`),
+                finalize(() => {
+                    const end = performance.now();
+                    const durationInSek = roundToPrecision(
+                        (end - start) / 1000,
+                        2,
+                    );
+                    const text =
+                        `${uploaderName}: Uploaded ${fileList.length} files in ${durationInSek} seconds!`;
+                    task.title = text;
+                }),
+            );
+        },
     };
 }
 
