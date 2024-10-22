@@ -13,5 +13,6 @@ export const cli = new Command()
         // log the version when -v flag is given
         if (pureVersion) {
             console.log(cli.getVersion());
+            return;
         }
     });
