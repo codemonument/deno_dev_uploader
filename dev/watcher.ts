@@ -10,5 +10,8 @@ const watcher1$ = watch({
 });
 
 watcher1$.subscribe((filepaths) => {
-    console.log(`watcher_1: Changed files detected: `, filepaths.length);
+    console.log(`watcher_1: Changed files detected: `, {
+        count: filepaths.length,
+        filepaths,
+    });
 });

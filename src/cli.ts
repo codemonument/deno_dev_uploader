@@ -26,6 +26,11 @@ export const cli = new Command()
         },
     )
     .option(
+        "-w.i, --watcher.ignore <patterns...:string>",
+        `Optional: Path patterns to ignore in the watcher. Will be checked via string.includes().
+         For example: '-w.i .js.map stats.js' will filter all files containing '.js.map' or 'stats.js' in their path.`,
+    )
+    .option(
         "-s.h, --sftp.host <host:string>",
         `The ssh host to connect to. 
         Note: This uploader does not handle any authentication, 
@@ -41,7 +46,10 @@ export const cli = new Command()
             default: 6,
         },
     )
-    .action(({ uploadPair: uploadPairStrings }) => {
+    .action(({ uploadPair: uploadPairStrings, watcher }) => {
+        if (watcher?.ignore) {
+            console.log(`Found ignore patterns: `, watcher?.ignore);
+        }
         // STEP 1: extract and validate upload pairs from the cli options
         const uploadPairs = uploadPairStrings
             .map((uploadPairString) => {
