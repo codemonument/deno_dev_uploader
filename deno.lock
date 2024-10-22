@@ -24,6 +24,7 @@
     "jsr:@std/streams@^1.0.7": "1.0.7",
     "jsr:@std/text@~1.0.7": "1.0.7",
     "npm:@listr2/manager@^2.0.13": "2.0.13",
+    "npm:date-fns@^4.1.0": "4.1.0",
     "npm:listr2@*": "8.2.5",
     "npm:listr2@8.2.5": "8.2.5",
     "npm:p-defer@^4.0.1": "4.0.1",
@@ -177,6 +178,9 @@
     "colorette@2.0.20": {
       "integrity": "sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w=="
     },
+    "date-fns@4.1.0": {
+      "integrity": "sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg=="
+    },
     "emoji-regex@10.4.0": {
       "integrity": "sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw=="
     },
@@ -308,6 +312,7 @@
       "jsr:@std/assert@1",
       "jsr:@std/fs@^1.0.4",
       "npm:@listr2/manager@^2.0.13",
+      "npm:date-fns@^4.1.0",
       "npm:listr2@8.2.5",
       "npm:rxjs@^7.8.1"
     ]
