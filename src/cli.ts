@@ -1,5 +1,6 @@
 import { Command } from "@cliffy/command";
 import { existsSync } from "@std/fs";
+import type { UploadPair } from "./types.ts";
 export const cli = new Command()
     .name("dev-uploader")
     .description(
@@ -54,7 +55,7 @@ export const cli = new Command()
                     return undefined;
                 }
 
-                return { source, destination };
+                return { source, destination } satisfies UploadPair;
             }).filter((uploadPair) => uploadPair !== undefined);
 
         // STEP 1b: exit early if no valid upload pairs were found
