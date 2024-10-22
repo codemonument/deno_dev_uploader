@@ -1,6 +1,8 @@
 import { Command } from "@cliffy/command";
 import { existsSync } from "@std/fs";
 import type { UploadPair } from "./types.ts";
+import { createListrManager, type ListrCtx } from "./listr.ts";
+import { SftpClient } from "@codemonument/sftp-client";
 export const cli = new Command()
     .name("dev-uploader")
     .description(
@@ -60,7 +62,7 @@ export const cli = new Command()
             default: 6,
         },
     )
-    .action(({ uploadPair: uploadPairStrings, watcher }) => {
+    .action(async ({ uploadPair: uploadPairStrings, watcher, sftp }) => {
         // STEP 0: sanitize the ignore patterns
         // TODO: make issue in cliffy git repo about wrong typing when using "Dottet options" together with "collect: true"
         // https://github.com/c4spar/deno-cliffy/issues
@@ -106,4 +108,35 @@ export const cli = new Command()
             console.error("No valid upload pairs found! Exiting...");
             Deno.exit(1);
         }
+
+        // STEP 2 - Create the Listr Task manager and prepare the init tasks
+        const tasks = createListrManager<ListrCtx>();
+
+        tasks.add([
+            {
+                title: `Create sftp connections`,
+                task: (ctx, task) => {
+                    // SFTP INFO
+                    // - source files are referenced from the cwd of this cli, for example:
+                    // -   dist/apps/myapp/assets/svg-icons/ms_access.svg
+                    task.output =
+                        `Creating ${sftp.connections} SFTP connections...`;
+                    for (let i = 0; i < sftp.connections; i++) {
+                        ctx.sftp[i] = new SftpClient({
+                            host: sftp.host,
+                            cwd: Deno.cwd(),
+                            uploaderName: `SFTP${i + 1}`,
+                            logger: {
+                                ...console,
+                                debug: () => {},
+                            },
+                        });
+                        ctx.sftp[i].cd(`www/maya.internett.de`);
+                    }
+                },
+            },
+        ]);
+
+        // STEP 3 - Run all initial Tasks
+        await tasks.runAll();
     });
