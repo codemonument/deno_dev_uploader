@@ -1,0 +1,114 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@codemonument/puppet-process@1": "1.0.0",
+    "jsr:@codemonument/rx-webstreams@~0.9.4": "0.9.4",
+    "jsr:@codemonument/sftp-client@0.3": "0.3.0",
+    "jsr:@std/assert@0.223": "0.223.0",
+    "jsr:@std/assert@1": "1.0.6",
+    "jsr:@std/bytes@0.223": "0.223.0",
+    "jsr:@std/fmt@0.223": "0.223.0",
+    "jsr:@std/fs@0.223": "0.223.0",
+    "jsr:@std/internal@^1.0.4": "1.0.4",
+    "jsr:@std/io@0.223": "0.223.0",
+    "jsr:@std/io@0.223.0": "0.223.0",
+    "jsr:@std/log@0.223.0": "0.223.0",
+    "jsr:@std/streams@^1.0.7": "1.0.7",
+    "npm:p-defer@^4.0.1": "4.0.1",
+    "npm:p-map@^7.0.2": "7.0.2",
+    "npm:rxjs@^7.8.1": "7.8.1",
+    "npm:zod@3.22.4": "3.22.4"
+  },
+  "jsr": {
+    "@codemonument/puppet-process@1.0.0": {
+      "integrity": "fa8ac5aa447bf7c4a96b5fadc4ab21f93a96838c5e5bdde6ab5135834d293ed3",
+      "dependencies": [
+        "jsr:@std/streams"
+      ]
+    },
+    "@codemonument/rx-webstreams@0.9.4": {
+      "integrity": "8a80ebe3da8b9949e0ebc26107501d20c12f58e725072dd432c78be28f78c540",
+      "dependencies": [
+        "jsr:@std/io@0.223.0",
+        "jsr:@std/log",
+        "npm:zod"
+      ]
+    },
+    "@codemonument/sftp-client@0.3.0": {
+      "integrity": "3bce55bb263a9acf1181b0b46ec471ccd344ba7b1355b7e1e68a571b929fbc85",
+      "dependencies": [
+        "jsr:@codemonument/puppet-process",
+        "jsr:@codemonument/rx-webstreams",
+        "npm:p-defer",
+        "npm:p-map",
+        "npm:rxjs"
+      ]
+    },
+    "@std/assert@0.223.0": {
+      "integrity": "eb8d6d879d76e1cc431205bd346ed4d88dc051c6366365b1af47034b0670be24"
+    },
+    "@std/assert@1.0.6": {
+      "integrity": "1904c05806a25d94fe791d6d883b685c9e2dcd60e4f9fc30f4fc5cf010c72207",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/bytes@0.223.0": {
+      "integrity": "84b75052cd8680942c397c2631318772b295019098f40aac5c36cead4cba51a8"
+    },
+    "@std/fmt@0.223.0": {
+      "integrity": "6deb37794127dfc7d7bded2586b9fc6f5d50e62a8134846608baf71ffc1a5208"
+    },
+    "@std/fs@0.223.0": {
+      "integrity": "3b4b0550b2c524cbaaa5a9170c90e96cbb7354e837ad1bdaf15fc9df1ae9c31c"
+    },
+    "@std/internal@1.0.4": {
+      "integrity": "62e8e4911527e5e4f307741a795c0b0a9e6958d0b3790716ae71ce085f755422"
+    },
+    "@std/io@0.223.0": {
+      "integrity": "2d8c3c2ab3a515619b90da2c6ff5ea7b75a94383259ef4d02116b228393f84f1",
+      "dependencies": [
+        "jsr:@std/assert@0.223",
+        "jsr:@std/bytes"
+      ]
+    },
+    "@std/log@0.223.0": {
+      "integrity": "0b445d86df2d795b50abd09a9e7ff6b64a9cd37b38d5e40f56a95b42e947b1b9",
+      "dependencies": [
+        "jsr:@std/assert@0.223",
+        "jsr:@std/fmt",
+        "jsr:@std/fs",
+        "jsr:@std/io@0.223"
+      ]
+    },
+    "@std/streams@1.0.7": {
+      "integrity": "1a93917ca0c58c01b2bfb93647189229b1702677f169b6fb61ad6241cd2e499b"
+    }
+  },
+  "npm": {
+    "p-defer@4.0.1": {
+      "integrity": "sha512-Mr5KC5efvAK5VUptYEIopP1bakB85k2IWXaRC0rsh1uwn1L6M0LVml8OIQ4Gudg4oyZakf7FmeRLkMMtZW1i5A=="
+    },
+    "p-map@7.0.2": {
+      "integrity": "sha512-z4cYYMMdKHzw4O5UkWJImbZynVIo0lSGTXc7bzB1e/rrDqkgGUNysK/o4bTr+0+xKvvLoTyGqYC4Fgljy9qe1Q=="
+    },
+    "rxjs@7.8.1": {
+      "integrity": "sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "tslib@2.6.2": {
+      "integrity": "sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q=="
+    },
+    "zod@3.22.4": {
+      "integrity": "sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@codemonument/sftp-client@0.3",
+      "jsr:@std/assert@1"
+    ]
+  }
+}
