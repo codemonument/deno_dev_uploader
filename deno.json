@@ -1,14 +1,16 @@
 {
-  "name": "@codemonument/dev-uploader",
-  "version": "0.1.0",
-  "exports": "./main.ts",
-  "tasks": {
-    "dev": "deno run --watch main.ts"
-  },
-  "imports": {
-    "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
-    "@codemonument/cliffy-zod-option": "jsr:@codemonument/cliffy-zod-option@^1.0.1",
-    "@codemonument/sftp-client": "jsr:@codemonument/sftp-client@^0.3.0",
-    "@std/assert": "jsr:@std/assert@1"
-  }
+	"name": "@codemonument/dev-uploader",
+	"version": "0.1.0",
+	"exports": "./main.ts",
+	"tasks": {
+		"dev": "deno run --watch main.ts",
+		"example-help": "deno run main.ts --help",
+		"example-version": "deno run main.ts --version"
+	},
+	"imports": {
+		"@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
+		"@codemonument/cliffy-zod-option": "jsr:@codemonument/cliffy-zod-option@^1.0.1",
+		"@codemonument/sftp-client": "jsr:@codemonument/sftp-client@^0.3.0",
+		"@std/assert": "jsr:@std/assert@1"
+	}
 }
