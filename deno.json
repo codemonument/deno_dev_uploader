@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"exports": "./main.ts",
 	"tasks": {
-		"dev": "deno run --watch -R main.ts -u ./playground:playground",
+		"dev": "deno run --watch -R main.ts -u ./playground:playground -s.h maya-dev",
 		"example-help": "deno run main.ts --help",
 		"example-version": "deno run main.ts --version",
 		"example-v": "deno run main.ts -v",

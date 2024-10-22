@@ -16,8 +16,8 @@ export const cli = new Command()
     .option(
         "-u, --upload-pair <upload-pair>",
         `An upload-pair in the format of <source>:<destination>. 
-         Min one upload-pair is required.
-         Note: this option can be set multiple times, but destination must exist on the same host for each upload-pair. 
+        Min one upload-pair is required.
+        Note: this option can be set multiple times, but destination must exist on the same host for each upload-pair. 
         `,
         {
             collect: true,
@@ -25,7 +25,16 @@ export const cli = new Command()
         },
     )
     .option(
-        "-c, --connection-count <sftpConnectionCount:integer>",
+        "-s.h, --sftp.host <host:string>",
+        `The ssh host to connect to. 
+        Note: This uploader does not handle any authentication, 
+        so make sure to have this hostname in your ssh config, complete with a valid ssh key setup.`,
+        {
+            required: true,
+        },
+    )
+    .option(
+        "-s.c, --sftp.connections <connectionCount:integer>",
         "Optional: The number of sftp connections to use",
         {
             default: 6,
