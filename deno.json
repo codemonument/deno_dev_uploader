@@ -3,15 +3,17 @@
 	"version": "0.1.0",
 	"exports": "./main.ts",
 	"tasks": {
-		"dev": "deno run --watch main.ts",
+		"dev": "deno run --watch -R main.ts -u ./playground:playground",
 		"example-help": "deno run main.ts --help",
 		"example-version": "deno run main.ts --version",
-		"example-v": "deno run main.ts -v"
+		"example-v": "deno run main.ts -v",
+		"example-u": "deno run main.ts -u ./test:./test -u out2:out2"
 	},
 	"imports": {
 		"@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
 		"@codemonument/cliffy-zod-option": "jsr:@codemonument/cliffy-zod-option@^1.0.1",
 		"@codemonument/sftp-client": "jsr:@codemonument/sftp-client@^0.3.0",
-		"@std/assert": "jsr:@std/assert@1"
+		"@std/assert": "jsr:@std/assert@1",
+		"@std/fs": "jsr:@std/fs@^1.0.4"
 	}
 }
