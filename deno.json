@@ -4,6 +4,7 @@
 	"exports": "./main.ts",
 	"tasks": {
 		"dev": "deno run --watch -R main.ts -u ./playground:playground -s.h maya-dev",
+		"dev-watcher": "deno run --watch -R ./dev/watcher.ts",
 		"example-help": "deno run main.ts --help",
 		"example-version": "deno run main.ts --version",
 		"example-v": "deno run main.ts -v",
