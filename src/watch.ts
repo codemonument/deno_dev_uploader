@@ -4,6 +4,7 @@ import {
 } from "@codemonument/rx-webstreams";
 import { bufferWhen, debounceTime, filter, map, Observable } from "rxjs";
 import type { GenericLogger } from "./GenericLogger.type.ts";
+import { walkSync } from "@std/fs";
 
 export type WatcherOptions = {
     /**
@@ -48,6 +49,12 @@ export type WatcherOptions = {
          */
         pathIncludes?: string[];
     };
+
+    /**
+     * If set to `true`, the watcher will emit all files in the watched directory on startup.
+     * Default: true
+     */
+    emitInitialFiles?: boolean;
 };
 
 /**
@@ -64,6 +71,7 @@ export function watch(
             pathEndsWith: [],
             pathIncludes: [],
         },
+        emitInitialFiles = true,
     }: WatcherOptions,
 ): Observable<string[]> {
     logger.log(`Watching dir "${watchDir}" for creations or changes...`);
@@ -72,6 +80,19 @@ export function watch(
         eventType: string;
         filepath: string;
     }>((subscriber) => {
+        if (emitInitialFiles) {
+            const initialWalker = walkSync(watchDir, {
+                includeDirs: false,
+            });
+
+            for (const entry of initialWalker) {
+                subscriber.next({
+                    eventType: "create",
+                    filepath: entry.path,
+                });
+            }
+        }
+
         // create deno fs watcher
         const watcher = Deno.watchFs(watchDir, { recursive: true });
         const watcherStream = ReadableStream.from(watcher);
