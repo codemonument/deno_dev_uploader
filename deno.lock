@@ -6,9 +6,7 @@
     "jsr:@cliffy/internal@1.0.0-rc.7": "1.0.0-rc.7",
     "jsr:@cliffy/table@1.0.0-rc.7": "1.0.0-rc.7",
     "jsr:@codemonument/cliffy-zod-option@^1.0.1": "1.0.1",
-    "jsr:@codemonument/puppet-process@^1.0.1": "1.0.1",
     "jsr:@codemonument/rx-webstreams@~0.9.4": "0.9.4",
-    "jsr:@codemonument/sftp-client@0.4": "0.4.0",
     "jsr:@codemonument/simple-rounding@1": "1.0.0",
     "jsr:@std/assert@0.223": "0.223.0",
     "jsr:@std/assert@1": "1.0.6",
@@ -22,7 +20,6 @@
     "jsr:@std/io@0.223.0": "0.223.0",
     "jsr:@std/log@0.223.0": "0.223.0",
     "jsr:@std/path@^1.0.6": "1.0.6",
-    "jsr:@std/streams@^1.0.7": "1.0.7",
     "jsr:@std/text@~1.0.7": "1.0.7",
     "npm:@listr2/manager@^2.0.13": "2.0.13",
     "npm:date-fns@^4.1.0": "4.1.0",
@@ -31,6 +28,7 @@
     "npm:p-defer@^4.0.1": "4.0.1",
     "npm:p-map@^7.0.2": "7.0.2",
     "npm:rxjs@^7.8.1": "7.8.1",
+    "npm:ts-pattern@^5.5.0": "5.5.0",
     "npm:zod@3.22.4": "3.22.4",
     "npm:zod@3.23": "3.23.8"
   },
@@ -68,10 +66,7 @@
       ]
     },
     "@codemonument/puppet-process@1.0.1": {
-      "integrity": "3cdcb144099b6096cb3f93a2df27b8be735950e5b3e6159a7f1ecc36cdc424fd",
-      "dependencies": [
-        "jsr:@std/streams"
-      ]
+      "integrity": "3cdcb144099b6096cb3f93a2df27b8be735950e5b3e6159a7f1ecc36cdc424fd"
     },
     "@codemonument/rx-webstreams@0.9.4": {
       "integrity": "8a80ebe3da8b9949e0ebc26107501d20c12f58e725072dd432c78be28f78c540",
@@ -81,15 +76,14 @@
         "npm:zod@3.22.4"
       ]
     },
-    "@codemonument/sftp-client@0.4.0": {
-      "integrity": "ef66388cfb8356dc57010ed92119742a5e30ca65b92eff195e31eadc144f34c5",
+    "@codemonument/sftp-client@0.5.0": {
+      "integrity": "4afb04543417270fe28ad87c70c01287297905042d4016ed997bab35e227b87a",
       "dependencies": [
-        "jsr:@codemonument/puppet-process",
         "jsr:@codemonument/rx-webstreams",
-        "jsr:@std/path",
         "npm:p-defer",
         "npm:p-map",
-        "npm:rxjs"
+        "npm:rxjs",
+        "npm:ts-pattern"
       ]
     },
     "@codemonument/simple-rounding@1.0.0": {
@@ -290,6 +284,9 @@
         "ansi-regex"
       ]
     },
+    "ts-pattern@5.5.0": {
+      "integrity": "sha512-jqbIpTsa/KKTJYWgPNsFNbLVpwCgzXfFJ1ukNn4I8hMwyQzHMJnk/BqWzggB0xpkILuKzaO/aMYhS0SkaJyKXg=="
+    },
     "tslib@2.6.2": {
       "integrity": "sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q=="
     },
@@ -313,7 +310,7 @@
       "jsr:@cliffy/command@1.0.0-rc.7",
       "jsr:@codemonument/cliffy-zod-option@^1.0.1",
       "jsr:@codemonument/rx-webstreams@~0.9.4",
-      "jsr:@codemonument/sftp-client@0.4",
+      "jsr:@codemonument/sftp-client@0.5",
       "jsr:@codemonument/simple-rounding@1",
       "jsr:@std/assert@1",
       "jsr:@std/fs@^1.0.4",

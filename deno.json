@@ -16,7 +16,7 @@
 		"@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
 		"@codemonument/cliffy-zod-option": "jsr:@codemonument/cliffy-zod-option@^1.0.1",
 		"@codemonument/rx-webstreams": "jsr:@codemonument/rx-webstreams@^0.9.4",
-		"@codemonument/sftp-client": "jsr:@codemonument/sftp-client@^0.4.0",
+		"@codemonument/sftp-client": "jsr:@codemonument/sftp-client@^0.5.0",
 		"@codemonument/simple-rounding": "jsr:@codemonument/simple-rounding@^1.0.0",
 		"@listr2/manager": "npm:@listr2/manager@^2.0.13",
 		"@std/assert": "jsr:@std/assert@1",
