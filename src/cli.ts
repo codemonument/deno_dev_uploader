@@ -122,15 +122,18 @@ export const cli = new Command()
         // STEP 3 - Start the watchers
         for (let i = 0; i < uploadPairs.length; i++) {
             const uploadPair = uploadPairs[i];
+            const watcherName = `watcher_${i + 1}`;
             globalTaskList.add([
                 {
-                    title: `Watching for changes in ${uploadPair.source}`,
+                    title:
+                        `${watcherName}: Watching for changes in ${uploadPair.source} and uploading to ${uploadPair.destination}`,
                     task: (ctx, task): Listr =>
                         // Generates the watcher task list (per uploadPair)
                         task.newListr((watcherTask) => [
                             // Watcher TaskList: Task 1
                             {
-                                title: `Create sftp connections`,
+                                title:
+                                    `${watcherName}: Create sftp connections`,
                                 task: (ctx, task) => {
                                     // SFTP INFO
                                     // - source files are referenced from the cwd of this cli, for example:
@@ -141,7 +144,8 @@ export const cli = new Command()
                                         ctx.sftp[j] = new SftpClient({
                                             host: sftp.host,
                                             cwd: Deno.cwd(),
-                                            uploaderName: `sftp_${j + 1}`,
+                                            uploaderName:
+                                                `${watcherName}_sftp_${j + 1}`,
                                             logger: listrLogger,
                                         });
                                         ctx.sftp[j].cd(`www/maya.internett.de`);
@@ -151,11 +155,11 @@ export const cli = new Command()
                             // Watcher TaskList: Task 2
                             {
                                 title:
-                                    `Starting watcher for ${uploadPair.source}`,
+                                    `${watcherName}: Starting watcher for ${uploadPair.source}`,
                                 task: (ctx, task) => {
                                     const watcher$ = watch({
+                                        watcherName,
                                         watchDir: uploadPair.source,
-                                        watcherName: `watcher_${i + 1}`,
                                         logger: listrLogger,
                                         ignore: ignorePatterns,
                                     });
