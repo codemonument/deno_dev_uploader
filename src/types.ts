@@ -35,9 +35,6 @@ type WatcherBase = {
 
 export type WatcherDefinition =
     | WatcherBase & {
-        state: "prepared";
-    }
-    | WatcherBase & {
         state: "startup";
         watcher$?: Observable<string[]>;
         uploader?: MultiConnectionUploader;

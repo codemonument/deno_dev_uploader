@@ -12,6 +12,8 @@ import {
 import type { UploadPair, WatcherDefinition } from "./types.ts";
 import { MultiProgressBars } from "multi-progress-bars";
 import chalk from "chalk";
+import { MultiConnectionUploader } from "./MultiConnectionUploader.ts";
+import { watch } from "./watch.ts";
 
 export const cli = new Command()
     .name("dev-uploader")
@@ -125,30 +127,62 @@ export const cli = new Command()
 
             // STEP 2 - Init MultiProgressBar
             const progressBar = new MultiProgressBars({
-                initMessage: "This is my init message...",
+                initMessage: ` ${chalk.bold("Dev-Uploader")} - ${
+                    chalk.dim("0.1.0")
+                } `,
                 anchor: "top",
                 persist: true,
                 border: true,
             });
 
-            // Experiments with MultiProgressBar
-            progressBar.addTask("test_1", {
-                type: "percentage",
-                barTransformFn: chalk.yellow,
-            });
-            progressBar.addTask("test_2", {
-                type: "percentage",
-                barTransformFn: chalk.green,
-            });
+            // STEP 3 - Setup the watchers
+            const watchers: WatcherDefinition[] = [];
+            for (let i = 0; i < uploadPairs.length; i++) {
+                const uploadPair = uploadPairs[i];
+                const watcherName = `watcher_${i + 1}`;
+                const watcherTitle =
+                    `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`;
+                const watcherInitTask = `${watcherName}_init`;
 
-            setInterval(() => {
-                progressBar.incrementTask("test_1", { percentage: 0.1 });
-            }, 100);
-            setInterval(() => {
-                progressBar.incrementTask("test_2", { percentage: 0.1 });
-            }, 200);
+                const newWatcher: WatcherDefinition = {
+                    state: "startup",
+                    watcherName,
+                    uploadPair,
+                    ignorePatterns,
+                    sftpOptions,
+                } satisfies WatcherDefinition;
+                watchers.push(newWatcher);
+                progressBar.addTask(watcherInitTask, {
+                    type: "percentage",
+                    barTransformFn: chalk.green,
+                    message: watcherTitle,
+                    percentage: 0,
+                });
 
-            console.log("Test");
+                // STEP 3.1 - Init sftp connections
+                console.log(
+                    `${watcherName}: Creating ${sftpOptions.connections} SFTP connections to sftp://${sftpOptions.host}...`,
+                );
+                newWatcher.uploader = new MultiConnectionUploader({
+                    uploaderName: `${watcherName}_sftp`,
+                    sftpOptions,
+                    logger: listrLogger,
+                });
+                console.log(
+                    `${watcherName}: Created ${sftpOptions.connections} SFTP connections to sftp://${sftpOptions.host}`,
+                );
+                progressBar.updateTask(watcherInitTask, { percentage: 0.5 });
+
+                // STEP 3.2 - Init the watcher
+                newWatcher.watcher$ = watch({
+                    watcherName,
+                    watchDir: uploadPair.source,
+                    logger: listrLogger,
+                    ignore: ignorePatterns,
+                });
+
+                progressBar.done(watcherInitTask, { message: watcherTitle });
+            }
 
             // LEGACY CODE - to be removed
 
