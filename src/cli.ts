@@ -125,7 +125,7 @@ export const cli = new Command()
         // STEP 2 - Create the Listr Task manager and prepare the init tasks
         const globalTaskList = createListrManager<ListrTopLvlCtx>();
 
-        // STEP 3 - Start the watchers
+        // STEP 3 - Start the watchers (with uploading included)
         for (let i = 0; i < uploadPairs.length; i++) {
             const uploadPair = uploadPairs[i];
             const watcherName = `watcher_${i + 1}`;
@@ -144,6 +144,6 @@ export const cli = new Command()
             ]);
         }
 
-        // STEP 3 - Run all initial Tasks
+        // STEP 4 - Run all initial Tasks
         await globalTaskList.runAll();
     });
