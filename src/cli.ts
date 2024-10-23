@@ -9,7 +9,7 @@ import {
     type ListrTopLvlCtx,
     type ListrWatcherCtx,
 } from "./listr.ts";
-import type { UploadPair } from "./types.ts";
+import type { UploadPair, WatcherDefinition } from "./types.ts";
 import { watch } from "./watch.ts";
 import { splitToNChunks } from "./utils.ts";
 import { createSftpUploadTask } from "./listr.ts";
@@ -133,13 +133,25 @@ export const cli = new Command()
                 {
                     title:
                         `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`,
-                    task: (_globalCtx, task): Listr =>
-                        generateWatcherTasklist(task, {
-                            sftp,
-                            ignorePatterns,
-                            uploadPair,
+                    task: (topLvlCtx, task): Listr => {
+                        // Create new WatcherDefinition
+                        const newWatcherDefinition = {
+                            state: "startup",
                             watcherName,
-                        }),
+                            uploadPair,
+                            ignorePatterns,
+                            sftpOptions: sftp,
+                            sftp: [],
+                        } satisfies WatcherDefinition;
+                        topLvlCtx.watchers.push(newWatcherDefinition);
+
+                        // Generate tasks for this new watcher
+                        return generateWatcherTasklist(
+                            task,
+                            topLvlCtx,
+                            newWatcherDefinition,
+                        );
+                    },
                 },
             ]);
         }

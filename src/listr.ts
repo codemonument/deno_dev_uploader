@@ -1,3 +1,5 @@
+import type { GenericLogger, SftpClient } from "@codemonument/sftp-client";
+import { roundToPrecision } from "@codemonument/simple-rounding";
 import { Manager } from "@listr2/manager";
 import {
     type DefaultRenderer,
@@ -6,15 +8,11 @@ import {
     type ListrTaskWrapper,
     type SimpleRenderer,
 } from "npm:listr2";
-import type { GenericLogger, SftpClient } from "@codemonument/sftp-client";
 import { finalize, map } from "rxjs";
-import { roundToPrecision } from "@codemonument/simple-rounding";
+import type { WatcherDefinition } from "./types.ts";
 
-export type ListrTopLvlCtx = {};
-
-export type ListrWatcherCtx = {
-    watcherName: string;
-    sftp: Array<SftpClient>;
+export type ListrTopLvlCtx = {
+    watchers: Array<WatcherDefinition>;
 };
 
 export function createListrManager<T = unknown>(
@@ -28,7 +26,7 @@ export function createListrManager<T = unknown>(
             collapseSkips: false,
         },
         ctx: {
-            sftp: [],
+            watchers: [],
         },
         ...override,
     });
