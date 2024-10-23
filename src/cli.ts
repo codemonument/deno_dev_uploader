@@ -126,14 +126,14 @@ export const cli = new Command()
             globalTaskList.add([
                 {
                     title:
-                        `${watcherName}: Watching for changes in ${uploadPair.source} and uploading to ${uploadPair.destination}`,
+                        `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`,
                     task: (ctx, task): Listr =>
                         // Generates the watcher task list (per uploadPair)
                         task.newListr((watcherTask) => [
                             // Watcher TaskList: Task 1
                             {
                                 title:
-                                    `${watcherName}: Create sftp connections`,
+                                    `${watcherName}: Create sftp connections to ${sftp.host}`,
                                 task: (ctx, task) => {
                                     // SFTP INFO
                                     // - source files are referenced from the cwd of this cli, for example:
@@ -148,11 +148,22 @@ export const cli = new Command()
                                                 `${watcherName}_sftp_${j + 1}`,
                                             logger: listrLogger,
                                         });
-                                        ctx.sftp[j].cd(`www/maya.internett.de`);
                                     }
                                 },
                             },
                             // Watcher TaskList: Task 2
+                            {
+                                title:
+                                    `${watcherName}: Remote cd to '${uploadPair.destination}'`,
+                                task: (ctx, _task) => {
+                                    for (let j = 0; j < sftp.connections; j++) {
+                                        // CAUTION: the destination folder MUST exist on the server! Upload WILL fail otherwise!
+                                        // TODO: add ensureDir functionality for sftp (same as mkdir -p)
+                                        ctx.sftp[j].cd(uploadPair.destination);
+                                    }
+                                },
+                            },
+                            // Watcher TaskList: Task 3
                             {
                                 title:
                                     `${watcherName}: Starting watcher for ${uploadPair.source}`,
