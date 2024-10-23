@@ -124,9 +124,7 @@ export function generateWatcherTasklist(
                     }
 
                     try {
-                        await watcher.sftp[j].cd(
-                            uploadPair.destination,
-                        );
+                        await watcher.uploader.cdInto(uploadPair.destination);
                     } catch (error) {
                         listrLogger.error(
                             `Could not cd to ${uploadPair.destination} on SFTP${

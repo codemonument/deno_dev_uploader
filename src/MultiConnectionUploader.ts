@@ -40,6 +40,12 @@ export class MultiConnectionUploader {
         }
     }
 
+    async cdInto(path: string) {
+        for (const sftp of this.openConnections) {
+            await sftp.cd(path);
+        }
+    }
+
     uploadFiles(files: string[]) {
         // slice files into n buckets
         const fileBuckets = splitToNChunks(
