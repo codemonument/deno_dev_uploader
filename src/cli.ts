@@ -10,6 +10,8 @@ import {
     type ListrTopLvlCtx,
 } from "./listr.ts";
 import type { UploadPair, WatcherDefinition } from "./types.ts";
+import { MultiProgressBars } from "multi-progress-bars";
+import chalk from "chalk";
 
 export const cli = new Command()
     .name("dev-uploader")
@@ -121,80 +123,109 @@ export const cli = new Command()
                 Deno.exit(1);
             }
 
+            // STEP 2 - Init MultiProgressBar
+            const progressBar = new MultiProgressBars({
+                initMessage: "This is my init message...",
+                anchor: "top",
+                persist: true,
+                border: true,
+            });
+
+            // Experiments with MultiProgressBar
+            progressBar.addTask("test_1", {
+                type: "percentage",
+                barTransformFn: chalk.yellow,
+            });
+            progressBar.addTask("test_2", {
+                type: "percentage",
+                barTransformFn: chalk.green,
+            });
+
+            setInterval(() => {
+                progressBar.incrementTask("test_1", { percentage: 0.1 });
+            }, 100);
+            setInterval(() => {
+                progressBar.incrementTask("test_2", { percentage: 0.1 });
+            }, 200);
+
+            console.log("Test");
+
+            // LEGACY CODE - to be removed
+
             // STEP 2 - Create the Listr Task manager and prepare the init tasks
-            const globalTaskList = createListrManager<ListrTopLvlCtx>();
+            // const globalTaskList = createListrManager<ListrTopLvlCtx>();
 
             // STEP 3 - Start the watchers (with uploading included)
-            for (let i = 0; i < uploadPairs.length; i++) {
-                const uploadPair = uploadPairs[i];
-                const watcherName = `watcher_${i + 1}`;
-                globalTaskList.add([
-                    {
-                        title:
-                            `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`,
-                        task: (topLvlCtx, task): Listr => {
-                            // Create new WatcherDefinition
-                            const newWatcherDefinition = {
-                                state: "startup",
-                                watcherName,
-                                uploadPair,
-                                ignorePatterns,
-                                sftpOptions,
-                                sftp: [],
-                            } satisfies WatcherDefinition;
-                            topLvlCtx.watchers.push(newWatcherDefinition);
+            // for (let i = 0; i < uploadPairs.length; i++) {
+            //     const uploadPair = uploadPairs[i];
+            //     const watcherName = `watcher_${i + 1}`;
+            //     globalTaskList.add([
+            //         {
+            //             title:
+            //                 `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`,
+            //             task: (topLvlCtx, task): Listr => {
+            //                 // Create new WatcherDefinition
+            //                 const newWatcherDefinition = {
+            //                     state: "startup",
+            //                     watcherName,
+            //                     uploadPair,
+            //                     ignorePatterns,
+            //                     sftpOptions,
+            //                     sftp: [],
+            //                 } satisfies WatcherDefinition;
+            //                 topLvlCtx.watchers.push(newWatcherDefinition);
 
-                            // Generate tasks for this new watcher
-                            return generateWatcherTasklist(
-                                task,
-                                topLvlCtx,
-                                newWatcherDefinition,
-                            );
-                        },
-                    },
-                ]);
-            }
+            //                 // Generate tasks for this new watcher
+            //                 return generateWatcherTasklist(
+            //                     task,
+            //                     topLvlCtx,
+            //                     newWatcherDefinition,
+            //                 );
+            //             },
+            //         },
+            //     ]);
+            // }
 
-            // STEP 4 - Run all initial Tasks
-            await globalTaskList.runAll();
+            // // STEP 4 - Run all initial Tasks
+            // await globalTaskList.runAll();
 
-            // Step 5 - subscribe to the watchers and add new upload tasks for each emission
-            for (const watcher of globalTaskList.ctx.watchers) {
-                if (watcher.state !== "running") {
-                    listrLogger.log(
-                        `error`,
-                        `Watcher "${watcher.watcherName}" is not running!`,
-                    );
-                    return;
-                }
+            // // Step 5 - subscribe to the watchers and add new upload tasks for each emission
+            // for (const watcher of globalTaskList.ctx.watchers) {
+            //     if (watcher.state !== "running") {
+            //         listrLogger.log(
+            //             `error`,
+            //             `Watcher "${watcher.watcherName}" is not running!`,
+            //         );
+            //         return;
+            //     }
 
-                watcher.watcher$.subscribe((files) => {
-                    const dateString = format(
-                        new Date(),
-                        "yyyy-mm-dd HH:mm:ss:SSS",
-                    );
-                    listrLogger.info(
-                        `${dateString} Changed files: ${files.length}`,
-                    );
+            //     watcher.watcher$.subscribe((files) => {
+            //         const dateString = format(
+            //             new Date(),
+            //             "yyyy-mm-dd HH:mm:ss:SSS",
+            //         );
+            //         listrLogger.info(
+            //             `${dateString} Changed files: ${files.length}`,
+            //         );
 
-                    globalTaskList.add([
-                        {
-                            title:
-                                `${dateString} Changes detected: Uploading ${files.length} files`,
-                            task: (topLvlCtx, task): Listr => {
-                                return generateUploadTasklist(task, topLvlCtx, {
-                                    watcher,
-                                    dateString,
-                                    files,
-                                    sftpOptions,
-                                });
-                            },
-                        },
-                    ]);
-                });
+            //         globalTaskList.add([
+            //             {
+            //                 title:
+            //                     `${dateString} Changes detected: Uploading ${files.length} files`,
+            //                 task: (topLvlCtx, task): Listr => {
+            //                     return generateUploadTasklist(task, topLvlCtx, {
+            //                         watcher,
+            //                         dateString,
+            //                         files,
+            //                         sftpOptions,
+            //                     });
+            //                 },
+            //             },
+            //         ]);
+            //     });
 
-                // after adding the tasks inside the bufferedWatch, run them to upload
-                await globalTaskList.runAll();
-            }
+            //     // after adding the tasks inside the bufferedWatch, run them to upload
+            //     await globalTaskList.runAll();
+            // }
         },
     );
