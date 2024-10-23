@@ -147,6 +147,7 @@ export const cli = new Command()
                                             uploaderName:
                                                 `${watcherName}_sftp_${j + 1}`,
                                             logger: listrLogger,
+                                            logMode: "unknown-and-error",
                                         });
                                     }
                                 },
