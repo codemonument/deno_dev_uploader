@@ -1,12 +1,16 @@
-import type { SftpClient } from "@codemonument/sftp-client";
+import { type GenericLogger, SftpClient } from "@codemonument/sftp-client";
 import type { SftpOptions } from "./types.ts";
 import { splitToNChunks } from "./utils.ts";
 import { finalize, map } from "rxjs";
 import { roundToPrecision } from "@codemonument/simple-rounding";
 
 export type UploaderOptions = {
+    /**
+     * @exaple `${watcherName}_sftp`
+     */
     uploaderName: string;
     sftpOptions: SftpOptions;
+    logger?: GenericLogger;
 };
 
 export class MultiConnectionUploader {
@@ -17,6 +21,18 @@ export class MultiConnectionUploader {
     constructor(options: UploaderOptions) {
         this.sftpOptions = options.sftpOptions;
         this.uploaderName = options.uploaderName;
+
+        // init sftp connections
+        for (let j = 0; j < this.sftpOptions.connections; j++) {
+            this.openConnections[j] = new SftpClient({
+                host: this.sftpOptions.host,
+                cwd: Deno.cwd(),
+                uploaderName: `${this.uploaderName}_sftp_${j + 1}`,
+                logger: options.logger,
+                logMode: "unknown-and-error",
+                // logMode: "verbose",
+            });
+        }
     }
 
     uploadFiles(files: string[]) {
