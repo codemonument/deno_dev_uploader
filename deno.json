@@ -23,6 +23,7 @@
 		"@std/fs": "jsr:@std/fs@^1.0.4",
 		"date-fns": "npm:date-fns@^4.1.0",
 		"listr2": "npm:listr2@8.2.5",
-		"rxjs": "npm:rxjs@^7.8.1"
+		"rxjs": "npm:rxjs@^7.8.1",
+		"multi-progress-bars": "npm:multi-progress-bars@~5.0.3"
 	}
 }
