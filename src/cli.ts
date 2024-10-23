@@ -164,6 +164,7 @@ export const cli = new Command()
                     uploaderName: `${watcherName}_sftp`,
                     sftpOptions,
                     logger: listrLogger,
+                    progressBar,
                 });
                 console.log(
                     `${watcherName}: Created ${sftpOptions.connections} SFTP connections to sftp://${sftpOptions.host}`,
@@ -197,6 +198,43 @@ export const cli = new Command()
                     `${watcherName}: Changed remote directory to ${uploadPair.destination}`,
                 );
                 progressBar.done(watcherInitTask, { message: watcherTitle });
+            }
+
+            // STEP 4 - Subscribe to the watcher and add new upload tasks for each emission
+            for (const watcher of watchers) {
+                // const watcherTask = `${watcher.watcherName}`;
+                // progressBar.addTask(watcherTask, {
+                //     type: "percentage",
+                //     barTransformFn: chalk.red,
+                //     message: `${watcher.watcherName}: Waiting for changes...`,
+                //     percentage: 0,
+                // });
+
+                if (watcher.watcher$ === undefined) {
+                    console.error(
+                        `Watcher "${watcher.watcherName}" has no watcher$ Observable!`,
+                    );
+                    return;
+                }
+
+                watcher.watcher$.subscribe((files) => {
+                    const dateString = format(
+                        new Date(),
+                        "yyyy-mm-dd HH:mm:ss:SSS",
+                    );
+                    console.log(
+                        `${watcher.watcherName}: ${dateString}: Changes Detected, Uploading ${files.length} files`,
+                    );
+
+                    if (watcher.uploader === undefined) {
+                        console.error(
+                            `Watcher "${watcher.watcherName}" has no uploader!`,
+                        );
+                        return;
+                    }
+
+                    watcher.uploader.uploadFiles(files);
+                });
             }
 
             // LEGACY CODE - to be removed

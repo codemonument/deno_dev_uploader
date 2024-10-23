@@ -3,6 +3,9 @@ import { roundToPrecision } from "@codemonument/simple-rounding";
 import { finalize, map } from "rxjs";
 import type { SftpOptions } from "./types.ts";
 import { splitToNChunks } from "./utils.ts";
+import { MultiProgressBars } from "multi-progress-bars";
+import chalk from "chalk";
+import { tap } from "rxjs";
 
 export type UploaderOptions = {
     /**
@@ -10,6 +13,7 @@ export type UploaderOptions = {
      */
     uploaderName: string;
     sftpOptions: SftpOptions;
+    progressBar: MultiProgressBars;
     logger?: GenericLogger;
 };
 
@@ -21,21 +25,30 @@ export type UploaderOptions = {
 export class MultiConnectionUploader {
     uploaderName: string;
     sftpOptions: SftpOptions;
+    progressBar: MultiProgressBars;
     openConnections: Array<SftpClient> = [];
 
     constructor(options: UploaderOptions) {
         this.sftpOptions = options.sftpOptions;
         this.uploaderName = options.uploaderName;
+        this.progressBar = options.progressBar;
 
         // init sftp connections
         for (let j = 0; j < this.sftpOptions.connections; j++) {
+            const connectionName = `${this.uploaderName}_${j + 1}`;
             this.openConnections[j] = new SftpClient({
                 host: this.sftpOptions.host,
                 cwd: Deno.cwd(),
-                uploaderName: `${this.uploaderName}_sftp_${j + 1}`,
+                uploaderName: connectionName,
                 logger: options.logger,
                 logMode: "unknown-and-error",
                 // logMode: "verbose",
+            });
+            this.progressBar.addTask(connectionName, {
+                type: "percentage",
+                barTransformFn: chalk.red,
+                message: `Waiting for changes...`,
+                percentage: 0,
             });
         }
     }
@@ -53,19 +66,27 @@ export class MultiConnectionUploader {
             this.sftpOptions.connections,
         );
 
-        const progressArray$ = fileBuckets.map(
+        fileBuckets.forEach(
             (fileBucket, index) => {
-                // return createSftpUploadTask(
-                //     watcher.sftp[index],
-                //     bucket,
-                //     `SFTP${index + 1}`,
-                // );
                 const sftp = this.openConnections[index];
+                const taskName = `${this.uploaderName}_${index + 1}`;
                 const start = performance.now();
 
-                return sftp.uploadFiles$(fileBucket).pipe(
-                    map(({ file, nr }) => `Uploading file ${nr}: ${file}`),
-                    finalize(() => {
+                const uploadProgress$ = sftp.uploadFiles$(fileBucket).pipe(
+                    map(({ file, nr }) => ({
+                        text: `Uploading file ${nr}: ${file}`,
+                        percentage: roundToPrecision(nr / fileBucket.length, 2),
+                    })),
+                );
+
+                uploadProgress$.subscribe({
+                    next: ({ text, percentage }) => {
+                        this.progressBar.updateTask(taskName, {
+                            message: text,
+                            percentage,
+                        });
+                    },
+                    complete: () => {
                         const end = performance.now();
                         const durationInSek = roundToPrecision(
                             (end - start) / 1000,
@@ -73,12 +94,12 @@ export class MultiConnectionUploader {
                         );
                         const text =
                             `${this.uploaderName}: Uploaded ${fileBucket.length} files in ${durationInSek} seconds!`;
-                        return text;
-                    }),
-                );
+                        this.progressBar.done(taskName, {
+                            message: text,
+                        });
+                    },
+                });
             },
         );
-
-        return progressArray$;
     }
 }
