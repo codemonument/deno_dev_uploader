@@ -18,6 +18,11 @@ export type IgnorePatterns = {
     pathIncludes: string[];
 };
 
+export type SftpOptions = {
+    host: string;
+    connections: number;
+};
+
 type WatcherBase = {
     watcherName: string;
     uploadPair: UploadPair;
