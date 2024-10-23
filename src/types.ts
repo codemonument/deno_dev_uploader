@@ -1,4 +1,3 @@
-import type { SftpClient } from "@codemonument/sftp-client";
 import type { Observable } from "rxjs";
 import type { MultiConnectionUploader } from "./MultiConnectionUploader.ts";
 

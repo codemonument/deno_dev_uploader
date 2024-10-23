@@ -1,9 +1,8 @@
-import { SftpClient } from "@codemonument/sftp-client";
 import type { DefaultRenderer, ListrTaskWrapper, SimpleRenderer } from "listr2";
 import { listrLogger, type ListrTopLvlCtx } from "../listr.ts";
+import { MultiConnectionUploader } from "../MultiConnectionUploader.ts";
 import type { WatcherDefinition } from "../types.ts";
 import { watch } from "../watch.ts";
-import { MultiConnectionUploader } from "../MultiConnectionUploader.ts";
 
 /**
  * Generates a task list for the watcher for each uploadPair

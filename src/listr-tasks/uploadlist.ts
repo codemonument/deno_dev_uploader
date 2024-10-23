@@ -3,18 +3,13 @@
  * This is necessary because each upload event uses multiple SftpClients to upload files in parallel and each of them needs to show the current progress
  */
 
-import type {
-    DefaultRenderer,
-    Listr,
-    ListrTaskWrapper,
-    SimpleRenderer,
-} from "listr2";
+import type { SftpClient } from "@codemonument/sftp-client";
+import { roundToPrecision } from "@codemonument/simple-rounding";
+import type { DefaultRenderer, ListrTaskWrapper, SimpleRenderer } from "listr2";
+import { finalize, map } from "rxjs";
 import type { ListrTopLvlCtx } from "../listr.ts";
 import type { SftpOptions, WatcherDefinition } from "../types.ts";
 import { splitToNChunks } from "../utils.ts";
-import type { SftpClient } from "@codemonument/sftp-client";
-import { finalize, map } from "rxjs";
-import { roundToPrecision } from "@codemonument/simple-rounding";
 
 export type UploadTasklistOptions = {
     dateString: string;

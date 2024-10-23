@@ -1,8 +1,8 @@
 import { type GenericLogger, SftpClient } from "@codemonument/sftp-client";
+import { roundToPrecision } from "@codemonument/simple-rounding";
+import { finalize, map } from "rxjs";
 import type { SftpOptions } from "./types.ts";
 import { splitToNChunks } from "./utils.ts";
-import { finalize, map } from "rxjs";
-import { roundToPrecision } from "@codemonument/simple-rounding";
 
 export type UploaderOptions = {
     /**
