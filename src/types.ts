@@ -1,5 +1,6 @@
 import type { SftpClient } from "@codemonument/sftp-client";
 import type { Observable } from "rxjs";
+import type { MultiConnectionUploader } from "./MultiConnectionUploader.ts";
 
 export type UploadPair = {
     /**
@@ -40,10 +41,10 @@ export type WatcherDefinition =
     | WatcherBase & {
         state: "startup";
         watcher$?: Observable<string[]>;
-        sftp?: Array<SftpClient>;
+        uploader?: MultiConnectionUploader;
     }
     | WatcherBase & {
         state: "running";
         watcher$: Observable<string[]>;
-        sftp: Array<SftpClient>;
+        uploader: MultiConnectionUploader;
     };

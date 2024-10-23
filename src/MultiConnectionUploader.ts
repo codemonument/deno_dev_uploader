@@ -13,6 +13,11 @@ export type UploaderOptions = {
     logger?: GenericLogger;
 };
 
+/**
+ * SFTP INFO
+ * - source files are referenced from the cwd of this cli, for example:
+ * -   dist/apps/myapp/assets/svg-icons/ms_access.svg
+ */
 export class MultiConnectionUploader {
     uploaderName: string;
     sftpOptions: SftpOptions;

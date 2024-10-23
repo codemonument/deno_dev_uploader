@@ -3,6 +3,7 @@ import type { DefaultRenderer, ListrTaskWrapper, SimpleRenderer } from "listr2";
 import { listrLogger, type ListrTopLvlCtx } from "../listr.ts";
 import type { WatcherDefinition } from "../types.ts";
 import { watch } from "../watch.ts";
+import { MultiConnectionUploader } from "../MultiConnectionUploader.ts";
 
 /**
  * Generates a task list for the watcher for each uploadPair
@@ -25,9 +26,6 @@ export function generateWatcherTasklist(
             title:
                 `${watcherName}: Create sftp connections to ${sftpOptions.host}`,
             task: (ctx, task) => {
-                // SFTP INFO
-                // - source files are referenced from the cwd of this cli, for example:
-                // -   dist/apps/myapp/assets/svg-icons/ms_access.svg
                 task.output =
                     `Creating ${sftpOptions.connections} SFTP connections...`;
 
@@ -37,17 +35,11 @@ export function generateWatcherTasklist(
                     );
                 }
 
-                if (newWatcher.sftp === undefined) {
-                    newWatcher.sftp = [];
-                }
-                for (let j = 0; j < sftpOptions.connections; j++) {
-                    newWatcher.sftp[j] = new SftpClient({
-                        host: sftpOptions.host,
-                        cwd: Deno.cwd(),
-                        uploaderName: `${watcherName}_sftp_${j + 1}`,
+                if (newWatcher.uploader === undefined) {
+                    newWatcher.uploader = new MultiConnectionUploader({
+                        uploaderName: `${watcherName}_sftp`,
+                        sftpOptions,
                         logger: listrLogger,
-                        logMode: "unknown-and-error",
-                        // logMode: "verbose",
                     });
                 }
             },
