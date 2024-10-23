@@ -46,8 +46,8 @@ export function generateWatcherTasklist(
                         cwd: Deno.cwd(),
                         uploaderName: `${watcherName}_sftp_${j + 1}`,
                         logger: listrLogger,
-                        // logMode: "unknown-and-error",
-                        logMode: "verbose",
+                        logMode: "unknown-and-error",
+                        // logMode: "verbose",
                     });
                 }
             },

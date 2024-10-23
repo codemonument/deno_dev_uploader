@@ -1,19 +1,15 @@
 import { Command } from "@cliffy/command";
-import { SftpClient } from "@codemonument/sftp-client";
 import { existsSync } from "@std/fs";
 import { format } from "date-fns";
 import type { Listr } from "listr2";
+import { generateUploadTasklist } from "./listr-tasks/uploadlist.ts";
+import { generateWatcherTasklist } from "./listr-tasks/watchlist.ts";
 import {
     createListrManager,
     listrLogger,
     type ListrTopLvlCtx,
-    type ListrWatcherCtx,
 } from "./listr.ts";
 import type { UploadPair, WatcherDefinition } from "./types.ts";
-import { watch } from "./watch.ts";
-import { splitToNChunks } from "./utils.ts";
-import { createSftpUploadTask } from "./listr.ts";
-import { generateWatcherTasklist } from "./listr-tasks/watchlist.ts";
 
 export const cli = new Command()
     .name("dev-uploader")
@@ -75,89 +71,130 @@ export const cli = new Command()
             default: 6,
         },
     )
-    .action(async ({ uploadPair: uploadPairStrings, watcher, sftp }) => {
-        // STEP 0: sanitize the ignore patterns
-        // TODO: make issue in cliffy git repo about wrong typing when using "Dottet options" together with "collect: true"
-        // https://github.com/c4spar/deno-cliffy/issues
-        if (watcher?.ignore) {
-            console.log(`Found ignore patterns: `, watcher?.ignore);
-        }
-        let ignorePatterns: {
-            pathEndsWith: string[];
-            pathIncludes: string[];
-        } = {
-            pathEndsWith: [],
-            pathIncludes: [],
-        };
-        if (watcher?.ignore?.pathEndsWith) {
-            const inputAsArray = watcher.ignore
-                .pathEndsWith as unknown as string[];
-            ignorePatterns.pathEndsWith = inputAsArray;
-        }
-        if (watcher?.ignore?.pathIncludes) {
-            const inputAsArray = watcher.ignore
-                .pathIncludes as unknown as string[];
-            ignorePatterns.pathIncludes = inputAsArray;
-        }
+    .action(
+        async (
+            { uploadPair: uploadPairStrings, watcher, sftp: sftpOptions },
+        ) => {
+            // STEP 0: sanitize the ignore patterns
+            // TODO: make issue in cliffy git repo about wrong typing when using "Dottet options" together with "collect: true"
+            // https://github.com/c4spar/deno-cliffy/issues
+            if (watcher?.ignore) {
+                console.log(`Found ignore patterns: `, watcher?.ignore);
+            }
+            let ignorePatterns: {
+                pathEndsWith: string[];
+                pathIncludes: string[];
+            } = {
+                pathEndsWith: [],
+                pathIncludes: [],
+            };
+            if (watcher?.ignore?.pathEndsWith) {
+                const inputAsArray = watcher.ignore
+                    .pathEndsWith as unknown as string[];
+                ignorePatterns.pathEndsWith = inputAsArray;
+            }
+            if (watcher?.ignore?.pathIncludes) {
+                const inputAsArray = watcher.ignore
+                    .pathIncludes as unknown as string[];
+                ignorePatterns.pathIncludes = inputAsArray;
+            }
 
-        // STEP 1: extract and validate upload pairs from the cli options
-        const uploadPairs = uploadPairStrings
-            .map((uploadPairString) => {
-                const [source, destination] = uploadPairString.split(":");
+            // STEP 1: extract and validate upload pairs from the cli options
+            const uploadPairs = uploadPairStrings
+                .map((uploadPairString) => {
+                    const [source, destination] = uploadPairString.split(":");
 
-                // validate existence of source
-                if (existsSync(source) === false) {
-                    console.error(
-                        `Source folder ${source} does not exist! - upload pair "${uploadPairString}" will be ignored!`,
+                    // validate existence of source
+                    if (existsSync(source) === false) {
+                        console.error(
+                            `Source folder ${source} does not exist! - upload pair "${uploadPairString}" will be ignored!`,
+                        );
+                        return undefined;
+                    }
+
+                    return { source, destination } satisfies UploadPair;
+                }).filter((uploadPair) => uploadPair !== undefined);
+
+            // STEP 1b: exit early if no valid upload pairs were found
+            if (uploadPairs.length === 0) {
+                console.error("No valid upload pairs found! Exiting...");
+                Deno.exit(1);
+            }
+
+            // STEP 2 - Create the Listr Task manager and prepare the init tasks
+            const globalTaskList = createListrManager<ListrTopLvlCtx>();
+
+            // STEP 3 - Start the watchers (with uploading included)
+            for (let i = 0; i < uploadPairs.length; i++) {
+                const uploadPair = uploadPairs[i];
+                const watcherName = `watcher_${i + 1}`;
+                globalTaskList.add([
+                    {
+                        title:
+                            `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`,
+                        task: (topLvlCtx, task): Listr => {
+                            // Create new WatcherDefinition
+                            const newWatcherDefinition = {
+                                state: "startup",
+                                watcherName,
+                                uploadPair,
+                                ignorePatterns,
+                                sftpOptions,
+                                sftp: [],
+                            } satisfies WatcherDefinition;
+                            topLvlCtx.watchers.push(newWatcherDefinition);
+
+                            // Generate tasks for this new watcher
+                            return generateWatcherTasklist(
+                                task,
+                                topLvlCtx,
+                                newWatcherDefinition,
+                            );
+                        },
+                    },
+                ]);
+            }
+
+            // STEP 4 - Run all initial Tasks
+            await globalTaskList.runAll();
+
+            // Step 5 - subscribe to the watchers and add new upload tasks for each emission
+            for (const watcher of globalTaskList.ctx.watchers) {
+                if (watcher.state !== "running") {
+                    listrLogger.log(
+                        `error`,
+                        `Watcher "${watcher.watcherName}" is not running!`,
                     );
-                    return undefined;
+                    return;
                 }
 
-                return { source, destination } satisfies UploadPair;
-            }).filter((uploadPair) => uploadPair !== undefined);
+                watcher.watcher$.subscribe((files) => {
+                    const dateString = format(
+                        new Date(),
+                        "yyyy-mm-dd HH:mm:ss:SSS",
+                    );
+                    listrLogger.info(
+                        `${dateString} Changed files: ${files.length}`,
+                    );
 
-        // STEP 1b: exit early if no valid upload pairs were found
-        if (uploadPairs.length === 0) {
-            console.error("No valid upload pairs found! Exiting...");
-            Deno.exit(1);
-        }
+                    globalTaskList.add([
+                        {
+                            title:
+                                `${dateString} Changes detected: Uploading ${files.length} files`,
+                            task: (topLvlCtx, task): Listr => {
+                                return generateUploadTasklist(task, topLvlCtx, {
+                                    watcher,
+                                    dateString,
+                                    files,
+                                    sftpOptions,
+                                });
+                            },
+                        },
+                    ]);
+                });
 
-        // STEP 2 - Create the Listr Task manager and prepare the init tasks
-        const globalTaskList = createListrManager<ListrTopLvlCtx>();
-
-        // STEP 3 - Start the watchers (with uploading included)
-        for (let i = 0; i < uploadPairs.length; i++) {
-            const uploadPair = uploadPairs[i];
-            const watcherName = `watcher_${i + 1}`;
-            globalTaskList.add([
-                {
-                    title:
-                        `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`,
-                    task: (topLvlCtx, task): Listr => {
-                        // Create new WatcherDefinition
-                        const newWatcherDefinition = {
-                            state: "startup",
-                            watcherName,
-                            uploadPair,
-                            ignorePatterns,
-                            sftpOptions: sftp,
-                            sftp: [],
-                        } satisfies WatcherDefinition;
-                        topLvlCtx.watchers.push(newWatcherDefinition);
-
-                        // Generate tasks for this new watcher
-                        return generateWatcherTasklist(
-                            task,
-                            topLvlCtx,
-                            newWatcherDefinition,
-                        );
-                    },
-                },
-            ]);
-        }
-
-        // STEP 4 - Run all initial Tasks
-        await globalTaskList.runAll();
-
-        // Step 5 - subscribe to the watchers and add new upload tasks for each emission
-    });
+                // after adding the tasks inside the bufferedWatch, run them to upload
+                await globalTaskList.runAll();
+            }
+        },
+    );

@@ -71,28 +71,21 @@ export function generateUploadTasklist(
             `Cannot upload files for watcher "${watcher.watcherName}": state is not "running", but "${watcher.state}" instead!`,
         );
     }
-    return parentTask.newListr((task) => [
-        {
-            title:
-                `${dateString} Changes detected: Uploading ${files.length} files`,
-            task: (ctx, task): Listr => {
-                // slice files into n buckets
-                const fileBuckets = splitToNChunks(
-                    files,
-                    sftpOptions.connections,
+
+    // slice files into n buckets
+    const fileBuckets = splitToNChunks(
+        files,
+        sftpOptions.connections,
+    );
+    return parentTask.newListr((task) => {
+        return fileBuckets.map(
+            (bucket, index) => {
+                return createSftpUploadTask(
+                    watcher.sftp[index],
+                    bucket,
+                    `SFTP${index + 1}`,
                 );
-                return task.newListr((
-                    _parentTask,
-                ) => fileBuckets.map(
-                    (bucket, index) => {
-                        return createSftpUploadTask(
-                            watcher.sftp[index],
-                            bucket,
-                            `SFTP${index + 1}`,
-                        );
-                    },
-                ));
             },
-        },
-    ]);
+        );
+    });
 }
