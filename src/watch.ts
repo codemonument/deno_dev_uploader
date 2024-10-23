@@ -2,9 +2,9 @@ import {
     filter as webFilter,
     simpleCallbackTarget,
 } from "@codemonument/rx-webstreams";
-import { bufferWhen, debounceTime, filter, map, Observable } from "rxjs";
-import type { GenericLogger } from "./GenericLogger.type.ts";
+import type { GenericLogger } from "@codemonument/sftp-client";
 import { walkSync } from "@std/fs";
+import { bufferWhen, debounceTime, filter, map, Observable } from "rxjs";
 
 export type WatcherOptions = {
     /**
