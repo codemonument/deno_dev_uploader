@@ -14,10 +14,10 @@ export type ListrCtx = {
     sftp: Array<SftpClient>;
 };
 
-export function createListrManager<T = unknown>(
+export function createListrManager(
     override?: ListrBaseClassOptions,
-): Manager<T> {
-    return new Manager({
+) {
+    return new Manager<ListrCtx>({
         concurrent: false,
         exitOnError: false,
         rendererOptions: {
