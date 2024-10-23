@@ -18,7 +18,7 @@ export function createListrManager<T = unknown>(
     override?: ListrBaseClassOptions,
 ): Manager<T> {
     return new Manager({
-        concurrent: true,
+        concurrent: false,
         exitOnError: false,
         rendererOptions: {
             collapseSubtasks: false,
