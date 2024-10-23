@@ -9,3 +9,8 @@ export type UploadPair = {
      */
     destination: string;
 };
+
+export type IgnorePatterns = {
+    pathEndsWith: string[];
+    pathIncludes: string[];
+};

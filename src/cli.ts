@@ -3,11 +3,17 @@ import { SftpClient } from "@codemonument/sftp-client";
 import { existsSync } from "@std/fs";
 import { format } from "date-fns";
 import type { Listr } from "listr2";
-import { createListrManager, type ListrCtx, listrLogger } from "./listr.ts";
+import {
+    createListrManager,
+    listrLogger,
+    type ListrTopLvlCtx,
+    type ListrWatcherCtx,
+} from "./listr.ts";
 import type { UploadPair } from "./types.ts";
 import { watch } from "./watch.ts";
 import { splitToNChunks } from "./utils.ts";
 import { createSftpUploadTask } from "./listr.ts";
+import { generateWatcherTasklist } from "./listr-tasks/watchlist.ts";
 
 export const cli = new Command()
     .name("dev-uploader")
@@ -117,7 +123,7 @@ export const cli = new Command()
         }
 
         // STEP 2 - Create the Listr Task manager and prepare the init tasks
-        const globalTaskList = createListrManager<ListrCtx>();
+        const globalTaskList = createListrManager<ListrTopLvlCtx>();
 
         // STEP 3 - Start the watchers
         for (let i = 0; i < uploadPairs.length; i++) {
@@ -127,95 +133,13 @@ export const cli = new Command()
                 {
                     title:
                         `${watcherName}: ${uploadPair.source} -> ${uploadPair.destination}`,
-                    task: (ctx, task): Listr =>
-                        // Generates the watcher task list (per uploadPair)
-                        task.newListr((watcherTask) => [
-                            // Watcher TaskList: Task 1
-                            {
-                                title:
-                                    `${watcherName}: Create sftp connections to ${sftp.host}`,
-                                task: (ctx, task) => {
-                                    // SFTP INFO
-                                    // - source files are referenced from the cwd of this cli, for example:
-                                    // -   dist/apps/myapp/assets/svg-icons/ms_access.svg
-                                    task.output =
-                                        `Creating ${sftp.connections} SFTP connections...`;
-                                    for (let j = 0; j < sftp.connections; j++) {
-                                        ctx.sftp[j] = new SftpClient({
-                                            host: sftp.host,
-                                            cwd: Deno.cwd(),
-                                            uploaderName:
-                                                `${watcherName}_sftp_${j + 1}`,
-                                            logger: listrLogger,
-                                            logMode: "unknown-and-error",
-                                        });
-                                    }
-                                },
-                            },
-                            // Watcher TaskList: Task 2
-                            {
-                                title:
-                                    `${watcherName}: Remote cd to '${uploadPair.destination}'`,
-                                task: (ctx, _task) => {
-                                    for (let j = 0; j < sftp.connections; j++) {
-                                        // CAUTION: the destination folder MUST exist on the server! Upload WILL fail otherwise!
-                                        // TODO: add ensureDir functionality for sftp (same as mkdir -p)
-                                        ctx.sftp[j].cd(uploadPair.destination);
-                                    }
-                                },
-                            },
-                            // Watcher TaskList: Task 3
-                            {
-                                title:
-                                    `${watcherName}: Starting watcher for ${uploadPair.source}`,
-                                task: (ctx, task) => {
-                                    const watcher$ = watch({
-                                        watcherName,
-                                        watchDir: uploadPair.source,
-                                        logger: listrLogger,
-                                        ignore: ignorePatterns,
-                                    });
-
-                                    watcher$.subscribe((allChangedFiles) => {
-                                        const dateString = format(
-                                            new Date(),
-                                            "yyyy-mm-dd HH:mm:ss:SSS",
-                                        );
-                                        listrLogger.info(
-                                            `${dateString} Changed files: ${allChangedFiles.length}`,
-                                        );
-
-                                        // slice files into n buckets
-                                        const fileBuckets = splitToNChunks(
-                                            allChangedFiles,
-                                            sftp.connections,
-                                        );
-
-                                        // returns a new task list inside this "start watcher" task
-                                        return task.newListr((parentTask) => [
-                                            {
-                                                title:
-                                                    `${dateString} Changes detected: Uploading ${allChangedFiles.length} files`,
-                                                task: (ctx, task): Listr =>
-                                                    task.newListr((
-                                                        _parentTask,
-                                                    ) => fileBuckets.map(
-                                                        (bucket, index) => {
-                                                            return createSftpUploadTask(
-                                                                ctx.sftp[index],
-                                                                bucket,
-                                                                `SFTP${
-                                                                    index + 1
-                                                                }`,
-                                                            );
-                                                        },
-                                                    )),
-                                            },
-                                        ]);
-                                    });
-                                },
-                            },
-                        ]),
+                    task: (_globalCtx, task): Listr =>
+                        generateWatcherTasklist(task, {
+                            sftp,
+                            ignorePatterns,
+                            uploadPair,
+                            watcherName,
+                        }),
                 },
             ]);
         }

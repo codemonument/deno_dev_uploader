@@ -10,14 +10,17 @@ import type { GenericLogger, SftpClient } from "@codemonument/sftp-client";
 import { finalize, map } from "rxjs";
 import { roundToPrecision } from "@codemonument/simple-rounding";
 
-export type ListrCtx = {
+export type ListrTopLvlCtx = {};
+
+export type ListrWatcherCtx = {
+    watcherName: string;
     sftp: Array<SftpClient>;
 };
 
-export function createListrManager(
+export function createListrManager<T = unknown>(
     override?: ListrBaseClassOptions,
 ) {
-    return new Manager<ListrCtx>({
+    return new Manager<T>({
         concurrent: false,
         exitOnError: false,
         rendererOptions: {
@@ -46,7 +49,7 @@ export function createSftpUploadTask(
     return {
         title: `${uploaderName}: Uploading ${files.length} files`,
         task: (
-            _ctx: ListrCtx,
+            _ctx: ListrTopLvlCtx,
             task: ListrTaskWrapper<
                 any,
                 typeof DefaultRenderer,
