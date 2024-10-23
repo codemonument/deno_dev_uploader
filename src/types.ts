@@ -1,3 +1,5 @@
+import type { Observable } from "rxjs";
+
 export type UploadPair = {
     /**
      * The source folder path to upload
@@ -13,4 +15,25 @@ export type UploadPair = {
 export type IgnorePatterns = {
     pathEndsWith: string[];
     pathIncludes: string[];
+};
+
+export type WatcherDefinition = {
+    state: "prepared";
+    watcherName: string;
+    uploadPair: UploadPair;
+    ignorePatterns: IgnorePatterns;
+    sftp: {
+        host: string;
+        connections: number;
+    };
+} | {
+    state: "running";
+    watcherName: string;
+    uploadPair: UploadPair;
+    ignorePatterns: IgnorePatterns;
+    sftp: {
+        host: string;
+        connections: number;
+    };
+    watcher$: Observable<string[]>;
 };
