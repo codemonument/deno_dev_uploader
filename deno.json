@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"exports": "./main.ts",
 	"tasks": {
-		"dev": "deno run --watch -R -E --allow-run=sftp main.ts -u ./playground:playground -s.h maya-dev -s.c 2 -w.i.e .js.map -w.i.e .css.map -w.i.e stats.json ",
+		"dev": "deno run --watch -R -E --allow-run=sftp main.ts -u ./playground:playground -u ./playground2:playground2 -s.h maya-dev -s.c 2 -w.i.e .js.map -w.i.e .css.map -w.i.e stats.json ",
 		"dev-watcher": "deno run --watch -R ./dev/watcher.ts",
 		"example-help": "deno run main.ts --help",
 		"example-version": "deno run main.ts --version",
