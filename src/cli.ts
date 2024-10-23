@@ -158,4 +158,6 @@ export const cli = new Command()
 
         // STEP 4 - Run all initial Tasks
         await globalTaskList.runAll();
+
+        // Step 5 - subscribe to the watchers and add new upload tasks for each emission
     });
