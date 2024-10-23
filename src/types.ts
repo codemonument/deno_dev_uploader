@@ -1,3 +1,4 @@
+import type { SftpClient } from "@codemonument/sftp-client";
 import type { Observable } from "rxjs";
 
 export type UploadPair = {
@@ -17,23 +18,27 @@ export type IgnorePatterns = {
     pathIncludes: string[];
 };
 
-export type WatcherDefinition = {
-    state: "prepared";
+type WatcherBase = {
     watcherName: string;
     uploadPair: UploadPair;
     ignorePatterns: IgnorePatterns;
-    sftp: {
+    sftpOptions: {
         host: string;
         connections: number;
     };
-} | {
-    state: "running";
-    watcherName: string;
-    uploadPair: UploadPair;
-    ignorePatterns: IgnorePatterns;
-    sftp: {
-        host: string;
-        connections: number;
-    };
-    watcher$: Observable<string[]>;
 };
+
+export type WatcherDefinition =
+    | WatcherBase & {
+        state: "prepared";
+    }
+    | WatcherBase & {
+        state: "startup";
+        watcher$?: Observable<string[]>;
+        sftp?: Array<SftpClient>;
+    }
+    | WatcherBase & {
+        state: "running";
+        watcher$: Observable<string[]>;
+        sftp: Array<SftpClient>;
+    };
