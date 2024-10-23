@@ -160,9 +160,6 @@ export const cli = new Command()
                 });
 
                 // STEP 3.1 - Init sftp connections
-                console.log(
-                    `${watcherName}: Creating ${sftpOptions.connections} SFTP connections to sftp://${sftpOptions.host}...`,
-                );
                 newWatcher.uploader = new MultiConnectionUploader({
                     uploaderName: `${watcherName}_sftp`,
                     sftpOptions,
@@ -171,7 +168,7 @@ export const cli = new Command()
                 console.log(
                     `${watcherName}: Created ${sftpOptions.connections} SFTP connections to sftp://${sftpOptions.host}`,
                 );
-                progressBar.updateTask(watcherInitTask, { percentage: 0.5 });
+                progressBar.updateTask(watcherInitTask, { percentage: 0.3 });
 
                 // STEP 3.2 - Init the watcher
                 newWatcher.watcher$ = watch({
@@ -180,7 +177,25 @@ export const cli = new Command()
                     logger: listrLogger,
                     ignore: ignorePatterns,
                 });
+                console.log(
+                    `${watcherName}: Started watcher for ${uploadPair.source}`,
+                );
+                progressBar.updateTask(watcherInitTask, { percentage: 0.6 });
 
+                // STEP 3.3 - Remote cd to upload destination
+                try {
+                    await newWatcher.uploader.cdInto(uploadPair.destination);
+                } catch (error) {
+                    console.error(
+                        `Could not cd to ${uploadPair.destination}!`,
+                        error,
+                    );
+                    return;
+                }
+
+                console.log(
+                    `${watcherName}: Changed remote directory to ${uploadPair.destination}`,
+                );
                 progressBar.done(watcherInitTask, { message: watcherTitle });
             }
 
