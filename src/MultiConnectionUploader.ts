@@ -1,11 +1,10 @@
 import { type GenericLogger, SftpClient } from "@codemonument/sftp-client";
 import { roundToPrecision } from "@codemonument/simple-rounding";
-import { finalize, map } from "rxjs";
+import chalk from "chalk";
+import { MultiProgressBars } from "multi-progress-bars";
+import { map } from "rxjs";
 import type { SftpOptions } from "./types.ts";
 import { splitToNChunks } from "./utils.ts";
-import { MultiProgressBars } from "multi-progress-bars";
-import chalk from "chalk";
-import { tap } from "rxjs";
 
 export type UploaderOptions = {
     /**
@@ -41,8 +40,8 @@ export class MultiConnectionUploader {
                 cwd: Deno.cwd(),
                 uploaderName: connectionName,
                 logger: options.logger,
-                logMode: "unknown-and-error",
-                // logMode: "verbose",
+                // logMode: "unknown-and-error",
+                logMode: "verbose",
             });
             this.progressBar.addTask(connectionName, {
                 type: "percentage",
@@ -93,7 +92,7 @@ export class MultiConnectionUploader {
                             2,
                         );
                         const text =
-                            `${this.uploaderName}: Uploaded ${fileBucket.length} files in ${durationInSek} seconds!`;
+                            `Uploaded ${fileBucket.length} files in ${durationInSek} seconds!`;
                         this.progressBar.done(taskName, {
                             message: text,
                         });
